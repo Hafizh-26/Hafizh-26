@@ -159,5 +159,5 @@ Setelah itu kalian ke **Graphs**
 
 <img width="919" alt="image" src="https://github.com/soulahuden/tkj3/assets/106908185/82412acc-c0a9-4ab8-8b90-5f84bb0fe003">
 
-dah kelar.
+Selesai ('-') .
 
