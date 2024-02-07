@@ -1,164 +1,301 @@
-Langkah awal (tidak usah jika sudah)
+Repo debian 11 
 ```
-#apt update
-#apt upgrade
-#apt install mariadb-server
-#mysql_secure_installation
-```
-
-Install cacti : 
-```
-#apt install cacti
-```
-
-Pilih "apache2" dan pilih "Yes" : 
-![image](https://github.com/soulahuden/tkj3/assets/106908185/6376ed54-dd43-41a9-a631-763765d78a82)
-![image](https://github.com/soulahuden/tkj3/assets/106908185/7a36fcf9-ea4e-4e77-97a4-f6a19dee981a)
-
-Lalu masukkan password untuk cacti, disini saya isi "123" 
-![image](https://github.com/soulahuden/tkj3/assets/106908185/aab3d566-88ac-4d46-ad72-ba36ccecfb05)
-
-
-Install SNMP Daemon, SNMP Client, dan SNMP Dev : 
-```
-#apt install snmpd snmp libsnmp-dev
-```
-
-Buat file backup dengan command dibawah : 
-```
-#cd /etc/snmp
-#cp snmpd.conf snmpd.conf-original
-```
-
-Edit file **snmpd.conf** seperti dibawah : 
-```
-#nano /etc/snmp/snmpd.conf
-```
-<img width="298" alt="image" src="https://github.com/soulahuden/tkj3/assets/106908185/0ae7d48c-5408-424c-9da4-6e07038f358f">
-
-Lalu ke paling bawah lagi dan ubah seperti dibawah sesuai nama dan ip elu : 
-![image](https://github.com/soulahuden/tkj3/assets/106908185/717cc751-f972-49c2-a9bd-4aa1223574cf)
-
-
-Install SNMP rrdtool nya dengan command : 
-```
-#apt install snmp-mibs-downloader rrdtool
-
-NOTE : JIKA COMMAND DIATAS TIDAK BISA, PASTIKAN MENGGUNAKAN / UBAH REPO MENJADI SEPERTI DIBAWAH :
-
 deb http://deb.debian.org/debian bullseye main contrib non-free
 deb http://deb.debian.org/debian bullseye-updates main contrib non-free
 deb http://deb.debian.org/debian bullseye-backports main contrib non-free
 deb http://security.debian.org/debian-security/ bullseye-security main contrib non-free
-
-SETELAH SUDAH DI UBAH JALANKAN COMMAND apt update .
 ```
 
-Lalu restart snmp : 
+Install dns dan apache2 :
 ```
-#systemctl restart snmpd
-```
-
-## Membuat DNS untuk Cacti 
-
-```
-#cd /etc/bind
-#nano db.usk
-
-LALU TAMBAHKAN INI DIPALING BAWAH FILE : 
-
-cacti   IN      A       192.168.1.34
+apt update
+apt install bind9 apache2
 ```
 
-Buat juga di db.192 : 
-
+Buat 2 konfigurasi file, misal db.usk dan db.absen :
 ```
-#nano db.192
-
-TAMBAHKAN INI DIPALING BAWAH FILE :
-
-34      IN      PTR     cacti.usk13662.net.
-^                               ^ 
-(ip terakhir anda)          (subdomain)
-
+cd /etc/bind
+cp db.local db.usk
+cp db.local db.absen
 ```
 
-Ke folder /etc/apache2/sites-available lalu buat file configurasi untuk cacti : 
+Buat file reverse :
 ```
-#cd /etc/apache2/sites-available
-#cp 000-default.conf cacti.conf
-```
+cp db.127 db.192
 
-Ubah konfigurasi **cacti.conf** :
-```
-#nano cacti.conf
+dan copy file named: 
+
+cp named.conf.defaul-zones named.conf.local
 ```
 
-Ubah konfigurasi seperti dibawah : 
-![image](https://github.com/soulahuden/tkj3/assets/106908185/abff601b-d937-4a9f-bf86-c10ed956c60e)
+Ubah konfigurasi db.usk seperti dibawah :
 
-
-Lalu edit file /usr/share/cacti/site/include/config.php :
 ```
-#nano /usr/share/cacti/site/include/config.php
+nano db.usk
+
+# UBAH localhost MENJADI DOMAIN ANDA 
+# UBAH IP MENJADI IP DEBIAN ANDA 
+# DAN DI PALING BAWAH TAMBAHKAN SUBDOMAIN WWW DAN IP DEBIAN SEPERTI DIBAWAH
+
+;
+; BIND data file for local loopback interface
+;
+$TTL    604800
+@       IN      SOA     usk13662.net. root.usk13662.net. (
+                              2         ; Serial
+                         604800         ; Refresh
+                          86400         ; Retry
+                        2419200         ; Expire
+                         604800 )       ; Negative Cache TTL
+;
+@       IN      NS      usk13662.net.
+@       IN      A       192.168.0.194
+www     IN      A       192.168.0.194
+
 ```
 
-Lalu ubah konfigurasi seperti dibawah : 
-
-
-![image](https://github.com/soulahuden/tkj3/assets/106908185/4e7a967a-fb9d-4498-a0fc-e5beb9d504a3)
-
-
-Setelah itu enable **cacti.conf** nya dan service lainya :
+Ubah konfigurasi db.absen seperti dibawah : 
 ```
-#a2ensite cacti.conf
-#systemctl restart apache2
-#systemctl restart bind9
+nano db.absen 
+
+# UBAH localhost MENJADI DOMAIN ABSEN ANDA
+# UBAH IP MENJADI IP DEBIAN 
+# DAN DI PALING BAWAH TAMBAHKAN SUBDOMAIN WWW DAN IP DEBIAN SEPERTI DIBAWAH
+
+;
+; BIND data file for local loopback interface
+;
+$TTL    604800
+@       IN      SOA     absen35.my.id. root.absen35.my.id. (
+                              2         ; Serial
+                         604800         ; Refresh
+                          86400         ; Retry
+                        2419200         ; Expire
+                         604800 )       ; Negative Cache TTL
+;
+@       IN      NS      absen35.my.id.
+@       IN      A       192.168.0.194
+www     IN      A       192.168.0.194
 ```
 
-## Monitoring Server 
+Ubah konfigurasi db.192 seperti dibawah :
+```
+nano db.192
 
-Buka domain cacti yang telah klean buat, disini domain saya adalah cacti.usk13662.net
+# UBAH localhost MENJADI DOMAIN USK ANDA 
+# TAMBAHKAN IP REVERSE DIPALING BAWAH
 
-Lalu kalian Create "New Device".\
-Ubah "Description"nya terserah klean. \
-Ubah "hostname" nya menjadi ip linux kalian. \ 
+;
+; BIND reverse data file for local loopback interface
+;
+$TTL    604800
+@       IN      SOA     usk13662.net. root.usk13662.net. (
+                              1         ; Serial
+                         604800         ; Refresh
+                          86400         ; Retry
+                        2419200         ; Expire
+                         604800 )       ; Negative Cache TTL
+;
+@       IN      NS      usk13662.net.
+194     IN      PTR     usk13662.net.
+```
 
-Ubah "SNMP Community String" menjadi nama kalian yang kalian isi di **/etc/snmp/snmpd.conf**. \ 
+Ubah konfigurasi **named.conf.local** seperti dibawah :
+```
+nano named.conf.local
 
-Lalu Create! 
-![image](https://github.com/soulahuden/tkj3/assets/106908185/b5f50187-2e9a-4e95-afac-3b1c9839e8cc)
+# HAPUS SEMUA ZONE DAN SISAKAN SEPERTI DIBAWAH 
+# DAN TAMBAHKAN ZONE absen
+
+zone "usk13662.net" {
+        type master;
+        file "/etc/bind/db.usk";
+};
+
+zone "absen35.my.id" {
+        type master;
+        file "/etc/bind/db.absen";
+};
+
+zone "192.in-addr.arpa" {
+        type master;
+        file "/etc/bind/db.192";
+};
+
+```
+
+Ubah konfigruasi **named.conf.options** seperti dibawah : 
+```
+options {
+        directory "/var/cache/bind";
+
+        // If there is a firewall between you and nameservers you want
+        // to talk to, you may need to fix the firewall to allow multiple
+        // ports to talk.  See http://www.kb.cert.org/vuls/id/800113
+
+        // If your ISP provided one or more IP addresses for stable
+        // nameservers, you probably want to use them as forwarders.
+        // Uncomment the following block, and insert the addresses replacing
+        // the all-0's placeholder.
+
+        forwarders {
+                192.168.0.194;
+                8.8.8.8;
+        };
+
+        //========================================================================
+        // If BIND logs error messages about the root key being expired,
+        // you will need to update your keys.  See https://www.isc.org/bind-keys
+        //========================================================================
+        dnssec-validation auto;
+
+        listen-on-v6 { any; };
+};
+```
+
+Restart bind9 dan ubah resolve : 
+```
+systemctl restart bind9
+nano /etc/resolv.conf
+
+ubah resolve menjadi ip debian anda 
+
+nameserver 192.168.0.194
+```
+
+Test ping ke domain *www.absen35.my.id* dan *www.usk13662.net*
+```
+ping www.absen35.my.id
+
+PING www.absen35.my.id (192.168.0.194) 56(84) bytes of data.
+64 bytes from 192.168.0.194 (192.168.0.194): icmp_seq=1 ttl=64 time=0.022 ms
+64 bytes from 192.168.0.194 (192.168.0.194): icmp_seq=2 ttl=64 time=0.101 ms
+64 bytes from 192.168.0.194 (192.168.0.194): icmp_seq=3 ttl=64 time=0.049 ms
+
+ping www.usk13662.net
+
+PING www.usk13662.net (192.168.0.194) 56(84) bytes of data.
+64 bytes from 192.168.0.194 (192.168.0.194): icmp_seq=1 ttl=64 time=0.034 ms
+64 bytes from 192.168.0.194 (192.168.0.194): icmp_seq=2 ttl=64 time=0.047 ms
+64 bytes from 192.168.0.194 (192.168.0.194): icmp_seq=3 ttl=64 time=0.100 ms
+```
+
+# Install Wordpress
+
+Install database untuk wordpress pelengkap lainnya : 
+```
+apt install mariadb-server php php-mysql wget 
+```
+
+Pindah ke direktori **/var/www/html** dan download wordpress :
+```
+cd /var/www/html
+wget wordpress.org/latest.tar.gz
+tar xzfv latest.tar.gz
+```
+
+Buat direktori baru dan copy **latest.tar.gz** kedalam direktori baru:
+```
+mkdir wordpress2
+cp latest.tar.gz wordpress2/
+```
+
+extract wordpress : 
+```
+tar xzfv latest.tar.gz
+cd wordpress2 
+tar xzfv latest.tar.gz
+```
+
+Lalu ganti akses di kedua lokasi wordpress : 
+```
+chmod 777 /var/www/html/wordpress
+chmod 777 /var/www/html/wordpress2/wordpress/
+```
+
+## Setting Apache2
+
+Setting apache2 dan buat 2 konfigurasi untuk masing-masing dns :
+```
+cd /etc/apache2/sites-available
+cp 000-default.conf usk.conf
+cp 000-default.conf absen.conf
+```
+
+Ubah konfigurasi di kedua file seperti dibawah ini : 
+```
+nano usk.conf 
+
+<VirtualHost *:80>
+        # The ServerName directive sets the request scheme, hostname and port that
+        # the server uses to identify itself. This is used when creating
+        # redirection URLs. In the context of virtual hosts, the ServerName
+        # specifies what hostname must appear in the request's Host: header to
+        # match this virtual host. For the default virtual host (this file) this
+        # value is not decisive as it is used as a last resort host regardless.
+        # However, you must set it for any further virtual host explicitly.
+        ServerName www.usk13662.net
+
+        ServerAdmin webmaster@localhost
+        DocumentRoot /var/www/html/wordpress
+```
+
+```
+nano absen.conf
+
+<VirtualHost *:80>
+        # The ServerName directive sets the request scheme, hostname and port that
+        # the server uses to identify itself. This is used when creating
+        # redirection URLs. In the context of virtual hosts, the ServerName
+        # specifies what hostname must appear in the request's Host: header to
+        # match this virtual host. For the default virtual host (this file) this
+        # value is not decisive as it is used as a last resort host regardless.
+        # However, you must set it for any further virtual host explicitly.
+        ServerName www.absen35.my.id
+
+        ServerAdmin webmaster@localhost
+        DocumentRoot /var/www/html/wordpress2/wordpress
+```
+
+Enable kedua file dengan command : 
+```
+a2ensite usk.conf
+a2ensite absen35.conf
+systemctl restart apache2
+```
+
+## Setting Database MySQL
+
+Secure install mariadb dan ubah password terserah klean : 
+```
+mysql_secure_installation
+```
+
+Buat database untuk domain usk dan absen :
+```
+mysql -u root 
+
+> create database usk;
+> create database absen;
+> show databases;
+```
+
+Lalu ke Pc Host/Windows kalian dan ubah DNS Server nya menjadi DNS Server IP Linux kalian
+
+Lalu buka domain kalian di web browser 
+
+<img width="678" alt="image" src="https://github.com/soulahuden/xtkj3/assets/106908185/ff3521fd-c905-42f8-95ac-0f43f601b8b8">
+
+Lalu isi database name dengan database yang kalian buat sesuai namanya. Masukkan username root dan password yang sudah kalian buat, lalu Submit. 
+<img width="669" alt="image" src="https://github.com/soulahuden/xtkj3/assets/106908185/f61a6b9f-ca67-434c-8f0a-c680726d7357">
 
 
-Jika seperti ini berarti sudah berhasil terbuat 
-![image](https://github.com/soulahuden/tkj3/assets/106908185/cdca04a2-3f52-459b-9b24-036720aa48a8)
+Setelah itu isi dibawah ini semua seterah kalian .
+<img width="598" alt="image" src="https://github.com/soulahuden/xtkj3/assets/106908185/853322aa-afe3-4b28-a486-c823c9be0248">
 
+Wordpress Berhasil terinstall dengan DNS
+<img width="855" alt="image" src="https://github.com/soulahuden/xtkj3/assets/106908185/2ec1e363-e50e-4f39-b661-49063af407ac">
 
-Setelah itu kalian ke paling bawah, tambahkan "SNMP - Interface Statistics" seperti dibawah, lalu Add : 
-![image](https://github.com/soulahuden/tkj3/assets/106908185/4c45d51a-e3e9-4fec-b184-533725c548e1)
-
-
-
-Lalu verify all di keduanya : 
-![image](https://github.com/soulahuden/tkj3/assets/106908185/133a1064-3da9-474f-9dc1-63ca6d625e8e)
-
-Setelah itu kalian ke Device lagi, trus centang device yang tdi kalian sudah buat, trus pilih "Place on a Tree (Default Tree)" trus Go 
-![image](https://github.com/soulahuden/tkj3/assets/106908185/1779b738-112d-4728-bd7f-09ef575bb3fd)
-
-
-Kalau sudah "Up", kalian ke "New Graphs" trus pilih device kalian, kek dibawah 
-<img width="634" alt="image" src="https://github.com/soulahuden/tkj3/assets/106908185/5b53a869-eaea-417b-b974-ac6bf6307754">
-
-
-trus centang, trus pilih "In/Out Bytes" trus create 
-![image](https://github.com/soulahuden/tkj3/assets/106908185/e7ede6ad-9df0-4ead-b406-f6f1e2ac5f8f)
-
-
-
-Setelah itu kalian ke **Graphs** 
-
-<img width="919" alt="image" src="https://github.com/soulahuden/tkj3/assets/106908185/82412acc-c0a9-4ab8-8b90-5f84bb0fe003">
+Lakukan hal yang sama di domain kalian yang satu lagi.
 
 Selesai.
-
-
