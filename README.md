@@ -1,164 +1,322 @@
-Langkah awal (tidak usah jika sudah)
-```
-#apt update
-#apt upgrade
-#apt install mariadb-server
-#mysql_secure_installation
-```
 
-Install cacti : 
+kek biasa langkah awal : 
+
 ```
-#apt install cacti
+#apt update 
+#apt install postfix dovecot-imapd
 ```
 
-Pilih "apache2" dan pilih "Yes" : 
-![image](https://github.com/soulahuden/tkj3/assets/106908185/6376ed54-dd43-41a9-a631-763765d78a82)
-![image](https://github.com/soulahuden/tkj3/assets/106908185/7a36fcf9-ea4e-4e77-97a4-f6a19dee981a)
+Pilih Internet Site
+![image](https://github.com/soulahuden/tkj3/assets/106908185/8c5fbba9-ac2b-4440-a30e-82e1b20265d2)
 
-Lalu masukkan password untuk cacti, disini saya isi "123" 
-![image](https://github.com/soulahuden/tkj3/assets/106908185/aab3d566-88ac-4d46-ad72-ba36ccecfb05)
+Tulis domain absen kalian, tidak usah pakai subdomain.
+![image](https://github.com/soulahuden/tkj3/assets/106908185/15397862-3b7f-4e74-b3af-0ec37f94a437)
 
 
-Install SNMP Daemon, SNMP Client, dan SNMP Dev : 
+
+
+Edit file **main.cf** : 
 ```
-#apt install snmpd snmp libsnmp-dev
-```
-
-Buat file backup dengan command dibawah : 
-```
-#cd /etc/snmp
-#cp snmpd.conf snmpd.conf-original
+#cd /etc/postfix
+#nano main.cf
 ```
 
-Edit file **snmpd.conf** seperti dibawah : 
+trus tambahin "home_mailbox = Maildir/" kek dibawah : 
+
+![image](https://github.com/soulahuden/tkj3/assets/106908185/cc48932b-09e3-4d63-8ccd-1a97c1d0e7bd)
+
+
+buat mail directory di directory /etc/skel
 ```
-#nano /etc/snmp/snmpd.conf
-```
-<img width="298" alt="image" src="https://github.com/soulahuden/tkj3/assets/106908185/0ae7d48c-5408-424c-9da4-6e07038f358f">
-
-Lalu ke paling bawah lagi dan ubah seperti dibawah sesuai nama dan ip elu : 
-![image](https://github.com/soulahuden/tkj3/assets/106908185/717cc751-f972-49c2-a9bd-4aa1223574cf)
-
-
-Install SNMP rrdtool nya dengan command : 
-```
-#apt install snmp-mibs-downloader rrdtool
-
-NOTE : JIKA COMMAND DIATAS TIDAK BISA, PASTIKAN MENGGUNAKAN / UBAH REPO MENJADI SEPERTI DIBAWAH :
-
-deb http://deb.debian.org/debian bullseye main contrib non-free
-deb http://deb.debian.org/debian bullseye-updates main contrib non-free
-deb http://deb.debian.org/debian bullseye-backports main contrib non-free
-deb http://security.debian.org/debian-security/ bullseye-security main contrib non-free
-
-SETELAH SUDAH DI UBAH JALANKAN COMMAND apt update .
+#maildirmake.dovecot /etc/skel/Maildir
 ```
 
-Lalu restart snmp : 
+abis itu konfigurasi ulang :
 ```
-#systemctl restart snmpd
+#dpkg-reconfigure postfix
+```
+### Pilih "Internet Site" 
+
+### Domain nya yang tadi, tinggal ok aja 
+
+
+yang ini kosongin 
+
+
+<img width="816" alt="image" src="https://github.com/soulahuden/tkj3/assets/106908185/cab4a495-62b3-4734-aa51-2d45fb1c5ff4">
+
+
+
+Masukkan localhost dan domain kalian
+
+
+<img width="758" alt="image" src="https://github.com/soulahuden/tkj3/assets/106908185/848fd5de-119c-4bcf-98d6-674d089402cb">
+
+
+Pilih "Yes"
+
+
+<img width="806" alt="image" src="https://github.com/soulahuden/tkj3/assets/106908185/208170da-84ad-4d78-b0b0-b5f77eb9e77a">
+
+
+Masukkan ip linux kalian dan 0.0.0.0/0
+
+
+<img width="812" alt="image" src="https://github.com/soulahuden/tkj3/assets/106908185/d353d1a0-37fd-4783-b675-c9f203184fa8">
+
+
+Ini OK aja 
+
+
+<img width="813" alt="image" src="https://github.com/soulahuden/tkj3/assets/106908185/e6e4dd2a-d942-4605-b7dc-aed8f24c6545">
+
+
+Ini OK aja 
+
+
+<img width="623" alt="image" src="https://github.com/soulahuden/tkj3/assets/106908185/c3d1232f-87ca-45f8-8d93-23edabbc02c7">
+
+
+Pilih ipv4 
+
+
+<img width="809" alt="image" src="https://github.com/soulahuden/tkj3/assets/106908185/b916de19-d056-4e36-8286-441413d1703b">
+
+
+Restart postfix 
+```
+#systemctl restart postfix
 ```
 
-## Membuat DNS untuk Cacti 
+## Konfigurasi Dovecot 
+
+konfigurasi 
+```
+#nano /etc/dovecot/dovecot.conf
+```
+
+trus ubah kek dibawah,pagernya apus, sisain bintang aje : 
+
+<img width="202" alt="image" src="https://github.com/soulahuden/tkj3/assets/106908185/fb6e2af8-bddc-4aec-8819-5e2e42727f51">
+
+
+
+Edit file konfigurasi /etc/dovecot/conf.d/10-auth.conf : 
+```
+#nano /etc/dovecot/conf.d/10-auth.conf
+```
+
+trus cari "disable_plaintext_auth" trus ganti dah kek di bawah 
+
+apus pagernye trus ganti yes jadi no
+
+
+<img width="298" alt="image" src="https://github.com/soulahuden/tkj3/assets/106908185/479feb3c-bcf7-4586-b9ed-93f43e8cc23d">
+
+
+
+
+Edit file konfigurasi /etc/dovecot.conf.d/10-mail.conf :
+```
+#nano /etc/dovecot/conf.d/10-mail.conf
+```
+
+
+
+trus cari mail_location trus pagernya apuss kek dibawah 
+
+<img width="551" alt="image" src="https://github.com/soulahuden/tkj3/assets/106908185/05ea834a-053f-4f0f-8f23-7c092bf35768">
+
+trus bawahan dikit ada "mail_location = mbox:~/mail:INBOX=/var/mail/%u"  nah itu lu pagerin ae, kek gambar dibawah :
+
+
+<img width="382" alt="image" src="https://github.com/soulahuden/tkj3/assets/106908185/2eca2ff2-68da-4f2f-8eed-3169b9ab40ef">
+
+Restart dovecot :
+```
+#systemctl restart dovecot
+```
+
+## Menambahkan User Mail
+
+Tambahin user, passwodnya sesuai soal
+```
+#adduser billing
+#adduser ceo
+```
+
+Restart postfix dan dovecot :
+```
+#systemctl restart postfix dovecot
+```
+
+## Konfigurasi Roundcube
+
+Install roundcube dan mariadb-server (kalo bloman) : 
+```
+#apt install roundcube mariadb-server
+```
+
+Pilih "Yes" Biar kebuat databasenya otomatis
+<img width="825" alt="image" src="https://github.com/soulahuden/tkj3/assets/106908185/606b8871-ab89-4aa2-9e5c-9e82a053f99e">
+
+
+Trus masukin passwordnya, biar gampang gua "123" ae 
+
+<img width="818" alt="image" src="https://github.com/soulahuden/tkj3/assets/106908185/eb0b89b4-0d1e-40ae-bf57-a60b5fd2a4a3">
+
+edit file config.inc.php 
+```
+#nano /etc/roundcube/config.inc.php
+```
+
+ubah default host dengan domain kalian 
+
+<img width="366" alt="image" src="https://github.com/soulahuden/tkj3/assets/106908185/fe3fbdd0-59a8-4c6f-ba78-f335720b4f57">
+
+ganti smpt server dengan domain kalian 
+
+
+<img width="303" alt="image" src="https://github.com/soulahuden/tkj3/assets/106908185/cab7af9d-67aa-4001-8575-c129847f2ec5">
+
+
+Ubah portnya menjadi 25 
+
+
+<img width="211" alt="image" src="https://github.com/soulahuden/tkj3/assets/106908185/0504334f-dd78-403a-bade-c6b85c023884">
+
+
+trus kosongkan user dan passnya 
+
+<img width="259" alt="image" src="https://github.com/soulahuden/tkj3/assets/106908185/5af5cb26-fdb2-4087-aef0-57580ba71434">
+
+Konfigurasi ulang roundcube :
+```
+#dpkg-reconfigure roundcube-core
+```
+
+ini kosongin ae
+![image](https://github.com/soulahuden/tkj3/assets/106908185/b458e171-7b2e-4c8c-a5ec-b828c9c85dc3)
+
+trus pilih yang "en_US" (males ss)
+
+
+trus pilih yes
+
+
+<img width="817" alt="image" src="https://github.com/soulahuden/tkj3/assets/106908185/a0a74a63-2e13-49c6-a950-d72673eb70ea">
+
+
+Pilih "TCP/IP"
+
+
+<img width="801" alt="image" src="https://github.com/soulahuden/tkj3/assets/106908185/7bdfdc3d-3ed7-4fd9-b08a-5b6e490cf581">
+
+Pilih "new host"
+
+
+<img width="623" alt="image" src="https://github.com/soulahuden/tkj3/assets/106908185/0fafc382-200c-499a-b3a3-ec42fd662bbf">
+
+Ini kosongin 
+
+
+<img width="825" alt="image" src="https://github.com/soulahuden/tkj3/assets/106908185/238a4673-a5de-4035-9268-58398b29adab">
+
+
+Ini tinggal OK aja 
+
+<img width="814" alt="image" src="https://github.com/soulahuden/tkj3/assets/106908185/06355d6e-09f3-449f-9f73-51e433c614c2">
+
+Pilih "default"
+
+<img width="807" alt="image" src="https://github.com/soulahuden/tkj3/assets/106908185/430c570c-0df1-461f-8bfe-15cd4b87c0e6">
+
+
+Ini tinggal OK 
+
+<img width="527" alt="image" src="https://github.com/soulahuden/tkj3/assets/106908185/e4f4f20c-8f34-49cd-a22d-37856de80861">
+
+
+Ini juga tinggal OK-in aja
+
+<img width="765" alt="image" src="https://github.com/soulahuden/tkj3/assets/106908185/db613d43-7a02-49bf-b676-eeb18e492480">
+
+
+
+Masukkin Password elu
+
+
+<img width="815" alt="image" src="https://github.com/soulahuden/tkj3/assets/106908185/f1a643a3-7da5-42c0-8740-886943ae3646">
+
+
+ini root 
+
+
+<img width="801" alt="image" src="https://github.com/soulahuden/tkj3/assets/106908185/8cf98bbd-ed09-40b8-9e72-e254716ee9e2">
+
+
+Pilih yang apache2 aja 
+
+
+<img width="669" alt="image" src="https://github.com/soulahuden/tkj3/assets/106908185/79068b2e-c658-4b6e-9ac8-3c4ae0818162">
+
+
+
+Restart.
+
+
+<img width="739" alt="image" src="https://github.com/soulahuden/tkj3/assets/106908185/faa9adad-0de2-40f8-ab5e-938ee7d38dad">
+
+
+trus pilih "keep the local blalblaasdfjae" 
+
+<img width="708" alt="image" src="https://github.com/soulahuden/tkj3/assets/106908185/908a5868-765c-4033-99d9-568296d7ee76">
+
+
+## Setting Apache2
+
+Edit file apache2.conf
+```
+#nano /etc/apache2/apache2.conf
+```
+
+Trus tambahin ini dipaling bawah 
+
+<img width="376" alt="image" src="https://github.com/soulahuden/tkj3/assets/106908185/78ff2955-d30b-4086-8c0b-941cab122a7b">
+
+Trus kita buat konfigurasi buat mail di sites-available 
+```
+#cd /etc/apache/sites-available
+#cp 000-default.conf mail.conf
+#nano mail.conf
+```
+
+
+<img width="368" alt="image" src="https://github.com/soulahuden/tkj3/assets/106908185/cf990236-f456-413b-a178-30ce2525e6f6">
+
+
+
+aktifkan file mail.conf dan restart apache2 : 
+```
+#a2ensite mail.conf
+#systemctl restart apache2
+```
+
+Oh iya jan lupa buat DNS buat mail nya :
 
 ```
 #cd /etc/bind
-#nano db.usk
-
-LALU TAMBAHKAN INI DIPALING BAWAH FILE : 
-
-cacti   IN      A       192.168.1.34
-```
-
-Buat juga di db.192 : 
-
-```
+#nano db.absen
 #nano db.192
-
-TAMBAHKAN INI DIPALING BAWAH FILE :
-
-34      IN      PTR     cacti.usk13662.net.
-^                               ^ 
-(ip terakhir anda)          (subdomain)
-
 ```
 
-Ke folder /etc/apache2/sites-available lalu buat file configurasi untuk cacti : 
-```
-#cd /etc/apache2/sites-available
-#cp 000-default.conf cacti.conf
-```
+db.absen
 
-Ubah konfigurasi **cacti.conf** :
-```
-#nano cacti.conf
-```
-
-Ubah konfigurasi seperti dibawah : 
-![image](https://github.com/soulahuden/tkj3/assets/106908185/abff601b-d937-4a9f-bf86-c10ed956c60e)
+<img width="452" alt="image" src="https://github.com/soulahuden/tkj3/assets/106908185/5bba5b24-5370-4df4-bc4e-f936124c3785">
 
 
-Lalu edit file /usr/share/cacti/site/include/config.php :
-```
-#nano /usr/share/cacti/site/include/config.php
-```
+db.192
 
-Lalu ubah konfigurasi seperti dibawah : 
-
-
-![image](https://github.com/soulahuden/tkj3/assets/106908185/4e7a967a-fb9d-4498-a0fc-e5beb9d504a3)
-
-
-Setelah itu enable **cacti.conf** nya dan service lainya :
-```
-#a2ensite cacti.conf
-#systemctl restart apache2
-#systemctl restart bind9
-```
-
-## Monitoring Server 
-
-Buka domain cacti yang telah klean buat, disini domain saya adalah cacti.usk13662.net
-
-Lalu kalian Create "New Device".\
-Ubah "Description"nya terserah klean. \
-Ubah "hostname" nya menjadi ip linux kalian. \ 
-
-Ubah "SNMP Community String" menjadi nama kalian yang kalian isi di **/etc/snmp/snmpd.conf**. \ 
-
-Lalu Create! 
-![image](https://github.com/soulahuden/tkj3/assets/106908185/b5f50187-2e9a-4e95-afac-3b1c9839e8cc)
-
-
-Jika seperti ini berarti sudah berhasil terbuat 
-![image](https://github.com/soulahuden/tkj3/assets/106908185/cdca04a2-3f52-459b-9b24-036720aa48a8)
-
-
-Setelah itu kalian ke paling bawah, tambahkan "SNMP - Interface Statistics" seperti dibawah, lalu Add : 
-![image](https://github.com/soulahuden/tkj3/assets/106908185/4c45d51a-e3e9-4fec-b184-533725c548e1)
-
-
-
-Lalu verify all di keduanya : 
-![image](https://github.com/soulahuden/tkj3/assets/106908185/133a1064-3da9-474f-9dc1-63ca6d625e8e)
-
-Setelah itu kalian ke Device lagi, trus centang device yang tdi kalian sudah buat, trus pilih "Place on a Tree (Default Tree)" trus Go 
-![image](https://github.com/soulahuden/tkj3/assets/106908185/1779b738-112d-4728-bd7f-09ef575bb3fd)
-
-
-Kalau sudah "Up", kalian ke "New Graphs" trus pilih device kalian, kek dibawah 
-<img width="634" alt="image" src="https://github.com/soulahuden/tkj3/assets/106908185/5b53a869-eaea-417b-b974-ac6bf6307754">
-
-
-trus centang, trus pilih "In/Out Bytes" trus create 
-![image](https://github.com/soulahuden/tkj3/assets/106908185/e7ede6ad-9df0-4ead-b406-f6f1e2ac5f8f)
-
-
-
-Setelah itu kalian ke **Graphs** 
-
-<img width="919" alt="image" src="https://github.com/soulahuden/tkj3/assets/106908185/82412acc-c0a9-4ab8-8b90-5f84bb0fe003">
-
-Selesai.
+<img width="356" alt="image" src="https://github.com/soulahuden/tkj3/assets/106908185/f33e2f7f-687f-422e-9944-45e05574f7ef">
 
 
